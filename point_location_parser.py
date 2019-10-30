@@ -11,6 +11,10 @@ import yaml
 import sys
 import glob
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.cluster.vq import kmeans
+from scipy.cluster.vq import vq
 
 # A dictionary containing dataframes for the following root headers found in the 
 # output point location yaml file.
@@ -21,7 +25,7 @@ point_data_dataframes = {"mesh_bvh": pd.DataFrame(), "external faces": pd.DataFr
 def load_point_file(filename):
     output = None
     with open(filename, 'r') as f:
-        output = yaml.load(f.read(), Loader=yaml.FullLoader)
+        output = yaml.load(f.read())
         for header in output.keys():
             if "locate" in header:  # locate headers have the format "locate(_NUM)?"
                 point_data_dataframes["locate"] = point_data_dataframes["locate"].append(
@@ -32,6 +36,22 @@ def load_point_file(filename):
                         pd.io.json.json_normalize(data={header : output[header]}),
                         ignore_index = True)
 
+def plot_anomalies_of(key, column_name, plot_type, clusters=2):
+    df = point_data_dataframes[key]
+    plt.style.use('ggplot')
+    if (plot_type == "box"):
+        df[column_name].plot(kind='box')
+        plt.show()
+    if (plot_type == "kmeans"):
+        raw = df[column_name].values
+        raw = raw.reshape(-1, 1)
+        raw = raw.astype('float64')
+        centroids, avg_distance = kmeans(raw, clusters)
+        groups, cdist = vq(raw, centroids)
+        plt.scatter(raw, np.arange(0, len(df[column_name].values)), c=groups)
+        plt.xlabel('Value')
+        plt.ylabel('Trial')
+        plt.show()
 
 def main():
     # Can take in multiple filnames with pattern matching
