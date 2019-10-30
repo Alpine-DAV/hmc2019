@@ -21,6 +21,8 @@ point_data_dataframes = {"mesh_bvh": pd.DataFrame(), "external faces": pd.DataFr
 def load_point_file(filename):
     output = None
     with open(filename, 'r') as f:
+        # depending on what version of the python ymal package you have
+        # you might need to delete the ```Loader=yaml.FullLoader``` parameter
         output = yaml.load(f.read(), Loader=yaml.FullLoader)
         for header in output.keys():
             if "locate" in header:  # locate headers have the format "locate(_NUM)?"
