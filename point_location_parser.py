@@ -24,18 +24,24 @@ point_data_dataframes = {"mesh_bvh": pd.DataFrame(), "external faces": pd.DataFr
 # loads the data returned in a point location yaml file into a dataframe
 def load_point_file(filename):
     output = None
+    run_num = int(filename.split('_')[-1].split('.')[0])
     with open(filename, 'r') as f:
         # depending on what version of the python ymal package you have
         # you might need to delete the ```Loader=yaml.FullLoader``` parameter
         output = yaml.load(f.read(), Loader=yaml.FullLoader)
         for header in output.keys():
+            out_dict = {"run" : run_num}
             if "locate" in header:  # locate headers have the format "locate(_NUM)?"
+                trial_num = 0 if not '_' in header else int(header.split('_')[-1])
+                out_dict["trial"] = trial_num
+                out_dict.update(output[header])
                 point_data_dataframes["locate"] = point_data_dataframes["locate"].append(
-                        pd.io.json.json_normalize(data={ "locate" : output[header]}),
+                        pd.io.json.json_normalize(data=out_dict),
                         ignore_index = True)
             else:
+                out_dict.update(output[header])
                 point_data_dataframes[header] = point_data_dataframes[header].append(
-                        pd.io.json.json_normalize(data={header : output[header]}),
+                        pd.io.json.json_normalize(data=out_dict),
                         ignore_index = True)
 
 def plot_anomalies_of(key, column_name, plot_type, clusters=2):
