@@ -18,7 +18,7 @@ from scipy.cluster.vq import vq
 
 # A dictionary containing dataframes for the following root headers found in the 
 # output point location yaml file.
-point_data_dataframes = {"mesh_bvh": pd.DataFrame(), "external faces": pd.DataFrame(), "locate": pd.DataFrame()}
+dfs = {"locate" : pd.DataFrame()}
 
 
 # loads the data returned in a point location yaml file into a dataframe
@@ -35,17 +35,19 @@ def load_point_file(filename):
                 trial_num = 0 if not '_' in header else int(header.split('_')[-1])
                 out_dict["trial"] = trial_num
                 out_dict.update(output[header])
-                point_data_dataframes["locate"] = point_data_dataframes["locate"].append(
+                dfs["locate"] = dfs["locate"].append(
                         pd.io.json.json_normalize(data=out_dict),
                         ignore_index = True)
             else:
+                if header not in dfs.keys():
+                    dfs[header] = pd.DataFrame()
                 out_dict.update(output[header])
-                point_data_dataframes[header] = point_data_dataframes[header].append(
+                dfs[header] = dfs[header].append(
                         pd.io.json.json_normalize(data=out_dict),
                         ignore_index = True)
 
 def plot_anomalies_of(key, column_name, plot_type, clusters=2):
-    df = point_data_dataframes[key]
+    df = dfs[key]
     plt.style.use('ggplot')
     if (plot_type == "box"):
         df[column_name].plot(kind='box')
@@ -61,6 +63,12 @@ def plot_anomalies_of(key, column_name, plot_type, clusters=2):
         plt.ylabel('Trial')
         plt.show()
 
+def save_to_excel(fname='timing.xlsx'):
+    # Save the dataframes of data into individual sheets of an excel file
+    with pd.ExcelWriter(fname) as writer:  
+        for header in dfs.keys():
+            dfs[header].to_excel(writer, sheet_name=header)
+
 def main():
     # Can take in multiple filnames with pattern matching
     file_count = 0
@@ -68,9 +76,9 @@ def main():
         for filename in glob.glob(arg):
             load_point_file(filename)
             file_count += 1
-    print("%d file%s loaded into point_data_dataframes dictionary."
+    print("%d file%s loaded into dfs dictionary."
             % (file_count, 's' if file_count else ''))
-    print("Possible headers are: " + str(point_data_dataframes.keys()))
+    print("Possible headers are: " + str(dfs.keys()))
 
 
 if __name__ == "__main__":
