@@ -7,6 +7,8 @@ set -e
 
 DRAY_OUPUT_PREFIX=${DRAY_LOG_PREFIX:-dray_data}
 
+mkdir -p "${3}"
+
 for ((i=${1:?}; i <= ${2:?}; i++)) 
 do
     echo "Build Trial #$i"
