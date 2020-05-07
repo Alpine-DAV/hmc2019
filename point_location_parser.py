@@ -24,13 +24,16 @@ dfs = {"locate" : pd.DataFrame()}
 # loads the data returned in a point location yaml file into a dataframe
 def load_point_file(filename):
     output = None
-    run_num = int(filename.split('_')[-1].split('.')[0])
+    fname = filename.split('/')[-1]
+    run_str = fname.split('_')[-1].split('.')[-2]
+    run_num = 0 if run_str == '' else int(run_str)
+    run_name = fname.split('__')[0]
     with open(filename, 'r') as f:
         # depending on what version of the python ymal package you have
         # you might need to delete the ```Loader=yaml.FullLoader``` parameter
         output = yaml.load(f.read(), Loader=yaml.FullLoader)
         for header in output.keys():
-            out_dict = {"run" : run_num}
+            out_dict = {"run" : run_num, "run_name" : run_name}
             if "locate" in header:  # locate headers have the format "locate(_NUM)?"
                 trial_num = 0 if not '_' in header else int(header.split('_')[-1])
                 out_dict["trial"] = trial_num
