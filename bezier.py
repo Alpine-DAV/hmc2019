@@ -25,6 +25,7 @@ def parse_output():
                 i += 1
             # print(line, end="")
 
+# Stolen from stack overflow
 def make_bezier(xys):
     # xys should be a sequence of 2-tuples (Bezier control points)
     n = len(xys)
